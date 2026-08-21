@@ -1,0 +1,20 @@
+# Environment variables / secrets (repo-wide)
+.env
+.env.*
+!.env.example
+ 
+# OS files
+.DS_Store
+Thumbs.db
+ 
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+ 
+# Docker
+*.pid
+ 
+# Logs (repo-wide, in case anything logs at root)
+*.log
