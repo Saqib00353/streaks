@@ -13,7 +13,6 @@ A habit-tracking web app with free and paid subscription tiers — track daily/w
 - [Tech Stack](#tech-stack)
 - [Screenshots](#screenshots)
 - [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [Roadmap](#roadmap)
@@ -77,18 +76,6 @@ docker-compose up --build
 
 Backend: http://localhost:8000
 Frontend: http://localhost:5173
-
-## Environment Variables
-
-See `.env.example` for the full list. Key variables:
-
-| Variable | Description |
-|---|---|
-| `SECRET_KEY` | Django secret key |
-| `DEBUG` | `True`/`False` |
-| `DATABASE_URL` | Postgres connection string |
-| `STRIPE_SECRET_KEY` | Stripe test-mode secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 
 ## Running Tests
 
