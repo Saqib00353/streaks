@@ -12,6 +12,7 @@ django-cors-headers = "*"
 djangorestframework-simplejwt = "*"
 python-dotenv = "*"
 drf-spectacular = "*"
+gunicorn = "*"
 
 [dev-packages]
 
