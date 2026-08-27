@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react"
-import { fetchUsers } from "../service"
+import { useState } from "react"
+import { login } from "../service"
 
 export default function UsersList() {
-    const [users, setUsers] = useState([])
+    const [data, setData] = useState({ username: '', password: '' })
 
-    useEffect(()=> {
-        fetchUsers().then(resUsers => {
-            setUsers(resUsers)
-        })
+    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+        e.preventDefault()
+        const res = await login(data)
+        console.log(res)
+    }
 
-    }, [])
-    return <div>
-        {users.map(user => <div key={user.username}>{user.username}</div>)}
-    </div>
+
+    return <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+        <input value={data.username} onChange={e => setData(p => ({ ...p, username: e.target.value }))} />
+        <input value={data.password} onChange={e => setData(p => ({ ...p, password: e.target.value }))} />
+        <button type="submit">Login</button>
+    </form>
 }
