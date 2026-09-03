@@ -23,7 +23,7 @@ def _set_refresh_cookie(response, refresh_token):
         path=REFRESH_COOKIE_PATH,
         httponly=True,
         secure=not settings.DEBUG,
-        samesite='Lax',
+        samesite='None' if not settings.DEBUG else 'Lax',
     )
 
 
@@ -87,5 +87,9 @@ class LogoutView(APIView):
             except TokenError:
                 pass
         response = Response(status=status.HTTP_205_RESET_CONTENT)
-        response.delete_cookie(REFRESH_COOKIE_NAME, path=REFRESH_COOKIE_PATH)
+        response.delete_cookie(
+            REFRESH_COOKIE_NAME,
+            path=REFRESH_COOKIE_PATH,
+            samesite='None' if not settings.DEBUG else 'Lax',
+        )
         return response
