@@ -1,8 +1,11 @@
-from rest_framework import mixins, viewsets
+from django.utils import timezone
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from .models import Habit
-from .serializers import HabitSerializer
+from .models import Habit, HabitLog
+from .serializers import CheckInSerializer, HabitLogSerializer, HabitSerializer, StreakSerializer
 
 
 class HabitViewSet(
@@ -27,3 +30,30 @@ class HabitViewSet(
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='check-in')
+    def check_in(self, request, pk=None):
+        habit = self.get_object()
+
+        serializer = CheckInSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        log, _ = HabitLog.objects.update_or_create(
+            habit=habit,
+            date=data.get('date', timezone.localdate()),
+            defaults={
+                'completed': data.get('completed', True),
+                'note': data.get('note'),
+            },
+        )
+
+        streak = habit.recalculate_streak()
+
+        return Response(
+            {
+                'log': HabitLogSerializer(log).data,
+                'streak': StreakSerializer(streak).data,
+            },
+            status=status.HTTP_200_OK,
+        )
