@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -19,7 +21,7 @@ class HabitViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Habit.objects.filter(owner=self.request.user)
+        queryset = Habit.objects.filter(owner=self.request.user).select_related('streak')
 
         if self.action == 'list':
             include_archived = self.request.query_params.get('include_archived', 'false')
@@ -57,3 +59,18 @@ class HabitViewSet(
             },
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=True, methods=['get'], url_path='logs')
+    def logs(self, request, pk=None):
+        habit = self.get_object()
+
+        try:
+            days = int(request.query_params.get('days', 21))
+        except ValueError:
+            days = 21
+        days = max(1, min(days, 90))
+
+        start = timezone.localdate() - timedelta(days=days - 1)
+        logs = habit.habit_logs.filter(date__gte=start).order_by('date')
+
+        return Response(HabitLogSerializer(logs, many=True).data)

@@ -30,6 +30,8 @@
   --color-card: oklch(1 0 0);
   --color-card-foreground: oklch(0.145 0 0);
 
+  --color-flame: oklch(0.77 0.17 65);
+
   --radius: 0.5rem;
 }
 
@@ -58,6 +60,8 @@
 
   --color-card: oklch(0.18 0 0);
   --color-card-foreground: oklch(0.98 0 0);
+
+  --color-flame: oklch(0.82 0.16 70);
 }
 
 @layer base {

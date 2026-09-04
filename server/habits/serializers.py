@@ -3,7 +3,15 @@ from rest_framework import serializers
 from .models import Habit, HabitLog, Streak
 
 
+class StreakSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Streak
+        fields = ['current_streak', 'longest_streak', 'last_completed_date']
+
+
 class HabitSerializer(serializers.ModelSerializer):
+    streak = serializers.SerializerMethodField()
+
     class Meta:
         model = Habit
         fields = [
@@ -17,8 +25,15 @@ class HabitSerializer(serializers.ModelSerializer):
             'owner',
             'created_at',
             'updated_at',
+            'streak',
         ]
-        read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'streak']
+
+    def get_streak(self, obj):
+        streak = getattr(obj, 'streak', None)
+        if streak is None:
+            return {'current_streak': 0, 'longest_streak': 0, 'last_completed_date': None}
+        return StreakSerializer(streak).data
 
     def validate(self, attrs):
         frequency = attrs.get('frequency', getattr(self.instance, 'frequency', None))
@@ -37,12 +52,6 @@ class HabitLogSerializer(serializers.ModelSerializer):
         model = HabitLog
         fields = ['id', 'date', 'completed', 'note', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class StreakSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Streak
-        fields = ['current_streak', 'longest_streak', 'last_completed_date']
 
 
 class CheckInSerializer(serializers.Serializer):
