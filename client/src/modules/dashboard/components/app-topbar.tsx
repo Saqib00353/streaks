@@ -1,18 +1,27 @@
 import { useAuth } from '@/modules/auth/auth-provider'
-import { useTheme } from '@/providers/theme-provider'
+import { useTheme, type Theme } from '@/providers/theme-provider'
 import { Button } from '@/components/ui/button'
-import { FlameIcon, LogoutIcon, MoonIcon, SunIcon } from '@/modules/dashboard/components/icons'
+import { FlameIcon, LogoutIcon, MonitorIcon, MoonIcon, SunIcon } from '@/modules/dashboard/components/icons'
 
 function initials(username: string) {
   return username.slice(0, 2).toUpperCase()
 }
 
+const THEME_CYCLE: Record<Theme, Theme> = {
+  system: 'light',
+  light: 'dark',
+  dark: 'system',
+}
+
+const THEME_LABEL: Record<Theme, string> = {
+  system: 'Matching system',
+  light: 'Light',
+  dark: 'Dark',
+}
+
 export function AppTopbar() {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
-  const isDark =
-    theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border px-6 sm:px-8">
@@ -27,10 +36,17 @@ export function AppTopbar() {
           variant="ghost"
           size="icon"
           className="text-muted-foreground"
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          aria-label="Toggle theme"
+          onClick={() => setTheme(THEME_CYCLE[theme])}
+          aria-label={`Theme: ${THEME_LABEL[theme]}. Click to change.`}
+          title={THEME_LABEL[theme]}
         >
-          {isDark ? <SunIcon width={18} height={18} /> : <MoonIcon width={18} height={18} />}
+          {theme === 'system' ? (
+            <MonitorIcon width={18} height={18} />
+          ) : theme === 'light' ? (
+            <SunIcon width={18} height={18} />
+          ) : (
+            <MoonIcon width={18} height={18} />
+          )}
         </Button>
         <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary text-[13px] font-semibold text-secondary-foreground">
           {user ? initials(user.username) : '?'}
