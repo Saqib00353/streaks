@@ -135,3 +135,50 @@ class HabitCheckInTests(APITestCase):
         response = self.client.post(self.check_in_url(other_habit), {'date': str(self.today)})
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class HabitFreeTierLimitTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='alice', password='pass1234')
+        self.client.force_authenticate(user=self.user)
+
+    def create_habit(self, name):
+        return self.client.post(
+            reverse('habit-list'),
+            {'name': name, 'frequency': 'daily', 'category': 'other'},
+        )
+
+    def test_free_tier_can_create_up_to_three_active_habits(self):
+        for i in range(3):
+            response = self.create_habit(f'Habit {i}')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_free_tier_rejects_fourth_active_habit(self):
+        for i in range(3):
+            self.create_habit(f'Habit {i}')
+
+        response = self.create_habit('One too many')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('limit', response.data)
+        self.assertEqual(Habit.objects.filter(owner=self.user).count(), 3)
+
+    def test_archiving_a_habit_frees_up_a_slot(self):
+        habits = [self.create_habit(f'Habit {i}').data for i in range(3)]
+        Habit.objects.filter(pk=habits[0]['id']).update(archived=True)
+
+        response = self.create_habit('Replacement habit')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_premium_user_is_not_limited(self):
+        self.user.profile.subscription_tier = 'premium'
+        self.user.profile.subscription_status = 'active'
+        self.user.profile.save()
+
+        for i in range(3):
+            self.create_habit(f'Habit {i}')
+
+        response = self.create_habit('Fourth habit')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

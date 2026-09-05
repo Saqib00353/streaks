@@ -1,13 +1,15 @@
 from datetime import timedelta
 
 from django.utils import timezone
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Habit, HabitLog
 from .serializers import CheckInSerializer, HabitLogSerializer, HabitSerializer, StreakSerializer
+
+FREE_TIER_ACTIVE_HABIT_LIMIT = 3
 
 
 class HabitViewSet(
@@ -31,7 +33,19 @@ class HabitViewSet(
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        user = self.request.user
+        if not user.profile.is_premium:
+            active_count = Habit.objects.filter(owner=user, archived=False).count()
+            if active_count >= FREE_TIER_ACTIVE_HABIT_LIMIT:
+                raise serializers.ValidationError(
+                    {
+                        'limit': (
+                            f'Free plan is limited to {FREE_TIER_ACTIVE_HABIT_LIMIT} active habits. '
+                            'Upgrade to premium to add more.'
+                        )
+                    }
+                )
+        serializer.save(owner=user)
 
     @action(detail=True, methods=['post'], url_path='check-in')
     def check_in(self, request, pk=None):

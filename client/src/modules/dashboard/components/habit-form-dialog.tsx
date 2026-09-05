@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react'
+import { isAxiosError } from 'axios'
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -77,8 +78,9 @@ export function HabitFormDialog({ open, onOpenChange, habit, onSubmit }: HabitFo
         category: form.category,
       })
       onOpenChange(false)
-    } catch {
-      setError('Could not save this habit. Please try again.')
+    } catch (err) {
+      const limitMessage = isAxiosError<{ limit?: string }>(err) ? err.response?.data?.limit : undefined
+      setError(limitMessage ?? 'Could not save this habit. Please try again.')
     } finally {
       setSubmitting(false)
     }

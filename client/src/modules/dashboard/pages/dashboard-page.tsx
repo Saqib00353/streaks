@@ -18,6 +18,8 @@ import {
   type HabitPayload,
 } from '@/modules/dashboard/types'
 
+const FREE_TIER_ACTIVE_HABIT_LIMIT = 3
+
 function greeting() {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'
@@ -52,6 +54,8 @@ export default function DashboardPage() {
   )
 
   const completedToday = useMemo(() => activeHabits.filter(isCompletedToday).length, [activeHabits])
+
+  const atFreeTierLimit = !user?.is_premium && activeHabits.length >= FREE_TIER_ACTIVE_HABIT_LIMIT
 
   const viewingHabit = useMemo(
     () => habits.find((h) => h.id === viewingHabitId) ?? null,
@@ -114,10 +118,18 @@ export default function DashboardPage() {
                       {completedToday} completed today
                     </p>
                   </div>
-                  <Button className="gap-2" onClick={openCreate}>
-                    <PlusIcon width={16} height={16} />
-                    New habit
-                  </Button>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <Button className="gap-2" onClick={openCreate} disabled={atFreeTierLimit}>
+                      <PlusIcon width={16} height={16} />
+                      New habit
+                    </Button>
+                    {atFreeTierLimit && (
+                      <p className="text-xs text-muted-foreground">
+                        Free plan limit reached ({FREE_TIER_ACTIVE_HABIT_LIMIT} active habits).{' '}
+                        Upgrade to add more.
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <HabitFilters
